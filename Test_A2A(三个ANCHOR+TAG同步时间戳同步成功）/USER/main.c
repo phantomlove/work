@@ -540,7 +540,7 @@ int main(void)
 				}
 			if(TimeSlot_Number_R <= 1)
 				{
-					//TimeSlot_Number_R_TAG = 1;
+					TimeSlot_Number_R_TAG = 1;
 				}
 				
 //				if(TimeSlot_Number_R == 15)
