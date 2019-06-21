@@ -1,0 +1,149 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: μVision V5.23.0.0
+Copyright (C) 2017 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: keshun LKS, Link, LIC=LJWPC-7KUHE-06ZQU-S9MLJ-JXCRW-3VU2Z
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Professional  Version: 5.23
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 4 (build 422)
+Assembler:       Armasm.exe V5.06 update 4 (build 422)
+Linker/Locator:  ArmLink.exe V5.06 update 4 (build 422)
+Library Manager: ArmAr.exe V5.06 update 4 (build 422)
+Hex Converter:   FromElf.exe V5.06 update 4 (build 422)
+CPU DLL:         SARMCM3.DLL V5.23
+Dialog DLL:      DCM.DLL V1.15.0.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.18.0
+Dialog DLL:      TCM.DLL V1.27.0.0
+ 
+<h2>Project:</h2>
+C:\Users\LKS\Desktop\A2T_Test\Test_A2A(三个ANCHOR在源代码逻辑上同步时间戳成功）\USER\SPI.uvprojx
+Project File Date:  06/14/2019
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 4 (build 422)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'TREK1000'
+compiling main.c...
+main.c(210): warning:  #68-D: integer conversion resulted in a change of sign
+              return(-1) ;
+main.c(219): warning:  #68-D: integer conversion resulted in a change of sign
+      if (0 > result) return(-1) ; // Some failure has occurred
+main.c(227): warning:  #68-D: integer conversion resulted in a change of sign
+          return(-1) ;
+main.c(635): warning:  #177-D: variable "an"  was declared but never referenced
+          	int an = 0;
+main.c(636): warning:  #177-D: variable "tdly"  was declared but never referenced
+          	uint32 tdly ;
+main.c(637): warning:  #177-D: variable "reg1"  was declared but never referenced
+          	uint32 reg1, reg2;
+main.c(637): warning:  #177-D: variable "reg2"  was declared but never referenced
+          	uint32 reg1, reg2;
+main.c(389): warning:  #177-D: variable "toggle"  was declared but never referenced
+  	int toggle = 0;
+main.c(391): warning:  #177-D: variable "t"  was declared but never referenced
+  	u8 t=0;
+main.c(392): warning:  #177-D: variable "j"  was declared but never referenced
+  	u8 j,mask=0;
+main.c(392): warning:  #177-D: variable "mask"  was declared but never referenced
+  	u8 j,mask=0;
+main.c(394): warning:  #550-D: variable "len"  was set but never used
+  	u8 len;	
+main.c(396): warning:  #177-D: variable "times"  was declared but never referenced
+  	u16 times=0;
+main.c: 13 warnings, 0 errors
+compiling instance.c...
+..\HARDWARE\application\instance.c(271): warning:  #188-D: enumerated type mixed with another type
+              inst->nextState = 0; //clear
+..\HARDWARE\application\instance.c(360): warning:  #188-D: enumerated type mixed with another type
+                  inst->nextState = 0; //clear
+..\HARDWARE\application\instance.c(366): warning:  #177-D: variable "timestamp0"  was declared but never referenced
+  								uint8 timestamp0;
+..\HARDWARE\application\instance.c(535): warning:  #177-D: variable "timestamp1"  was declared but never referenced
+  									uint8 timestamp1;
+..\HARDWARE\application\instance.c: 4 warnings, 0 errors
+linking...
+Program Size: Code=42464 RO-data=1408 RW-data=488 ZI-data=8336  
+FromELF: creating hex file...
+"..\OBJ\SPI.axf" - 0 Error(s), 17 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.5.0.1.pack
+                ARM::CMSIS:CORE:5.0.1
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: CORE Version: 5.0.1
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.STM32F1xx_DFP.2.1.0.pack
+                Keil::Device:StdPeriph Drivers:Flash:3.5.0
+                STMicroelectronics STM32F1 Series Device Support, Drivers and Examples
+   * Component: Flash Version: 3.5.0
+   * Component: USART Version: 3.5.0
+   * Component: Startup Version: 1.0.0
+   * Component: Framework Version: 3.5.1
+   * Component: GPIO Version: 3.5.0
+   * Component: DMA Version: 3.5.0
+   * Component: SPI Version: 3.5.0
+   * Component: RCC Version: 3.5.0
+   * Component: EXTI Version: 3.5.0
+
+<h2>Collection of Component include folders:</h2>
+  .\RTE\Device\STM32F103T8
+  .\RTE\_TREK1000
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include
+  C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.1.0\Device\Include
+  C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.1.0\Device\StdPeriph_Driver\inc
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:5.0.1
+
+   * Component: Keil::Device:StdPeriph Drivers:Flash:3.5.0
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_flash.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_flash.c
+
+   * Component: Keil::Device:StdPeriph Drivers:USART:3.5.0
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_usart.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_usart.h
+
+   * Component: Keil::Device:Startup:1.0.0
+      Source file:   Device\Source\system_stm32f10x.c
+      Source file:   Device\Source\ARM\STM32F1xx_OPT.s
+      Include file:  RTE_Driver\Config\RTE_Device.h
+      Source file:   Device\Source\ARM\startup_stm32f10x_md.s
+
+   * Component: Keil::Device:StdPeriph Drivers:Framework:3.5.1
+      Include file:  Device\StdPeriph_Driver\templates\stm32f10x_it.h
+      Source file:   Device\StdPeriph_Driver\templates\stm32f10x_it.c
+      Include file:  Device\StdPeriph_Driver\inc\misc.h
+      Source file:   Device\StdPeriph_Driver\src\misc.c
+      Source file:   Device\StdPeriph_Driver\templates\stm32f10x_conf.h
+
+   * Component: Keil::Device:StdPeriph Drivers:GPIO:3.5.0
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_gpio.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_gpio.c
+
+   * Component: Keil::Device:StdPeriph Drivers:DMA:3.5.0
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_dma.h
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_dma.c
+
+   * Component: Keil::Device:StdPeriph Drivers:SPI:3.5.0
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_spi.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_spi.h
+
+   * Component: Keil::Device:StdPeriph Drivers:RCC:3.5.0
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_rcc.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_rcc.h
+
+   * Component: Keil::Device:StdPeriph Drivers:EXTI:3.5.0
+      Source file:   Device\StdPeriph_Driver\src\stm32f10x_exti.c
+      Include file:  Device\StdPeriph_Driver\inc\stm32f10x_exti.h
+Build Time Elapsed:  00:00:02
+</pre>
+</body>
+</html>
