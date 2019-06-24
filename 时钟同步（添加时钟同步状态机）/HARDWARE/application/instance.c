@@ -1015,7 +1015,7 @@ void instance_syc(instance_data_t *inst, int message)
 										// First time anchor listens we don't do a delayed RX
 										dwt_setrxaftertxdelay(0);
                     //change to next state - wait to receive a message
-                    inst->testAppState = TA_RXE_WAIT ;
+                    inst->CurrentState_Syc = TA_RXE_WAIT ;
                     dwt_setrxtimeout(0);
                     dwt_setpreambledetecttimeout(0);
                     instanceconfigframeheader16(inst);
@@ -1067,7 +1067,7 @@ void instance_syc(instance_data_t *inst, int message)
 		 case TA_RXE_WAIT:
 		 {
 			 dwt_rxenable(DWT_START_RX_IMMEDIATE) ; // turn RX on, without delay
-			 inst->testAppState = TA_RX_WAIT_DATA;
+			 inst->CurrentState_Syc = TA_RX_WAIT_DATA;
 			 if(message == 0) break;
 		 }
 		 break;
