@@ -1066,7 +1066,9 @@ void instance_syc(instance_data_t *inst, int message)
 		 
 		 case TA_RXE_WAIT:
 		 {
-			 
+			 dwt_rxenable(DWT_START_RX_IMMEDIATE) ; // turn RX on, without delay
+			 inst->testAppState = TA_RX_WAIT_DATA;
+			 if(message == 0) break;
 		 }
 		 break;
 		 
