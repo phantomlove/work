@@ -1098,7 +1098,9 @@ void instance_rxcallback(const dwt_callback_data_t *rxd)
 						if(instance_data[instance].mode == TAG)  //tag should ignore any other Polls from anchors
 						{
 							instance_data[instance].responseTO++; //as will be decremented in the function and was also decremented above
-							handle_error_unknownframe(dw_event);
+							//handle_error_unknownframe(dw_event);
+							instance_putevent(dw_event, DWT_SIG_RX_OKAY);
+							dw_event.type_pend = DWT_SIG_DW_IDLE ;
 							instance_data[instance].stopTimer = 1;
 							instance_data[instance].rxMsgCount++;
 							return;
@@ -1446,16 +1448,21 @@ int instance_run(void)
     int instance = 0 ;
     int done = INST_NOT_DONE_YET;
     int message = instance_peekevent(); //get any of the received events from ISR
+	if(instance_data[instance].instanceAddress16 == GATEWAY_ANCHOR_ADDR)
+	{
+		instance_data[instance].mode = ANCHOR_MASTER;
+	}
 
 	instance_syc(&instance_data[instance], message);
-	while(done == INST_NOT_DONE_YET)
-	{
-		//int state = instance_data[instance].testAppState;
-		done = testapprun(&instance_data[instance], message) ;                                               // run the communications application
+	
+//	while(done == INST_NOT_DONE_YET)
+//	{
+//		//int state = instance_data[instance].testAppState;
+//		//done = testapprun(&instance_data[instance], message) ;                                               // run the communications application
 
-		//we've processed message
-		message = 0;
-	}
+//		//we've processed message
+//		message = 0;
+//	}
 
 
 

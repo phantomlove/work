@@ -501,6 +501,7 @@ int main(void)
 	{
     	int monitor_local = instance_data[0].monitor ;
     	int txdiff = (portGetTickCnt() - instance_data[0].timeofTx);
+			int instance = 0 ;
 			n = 0;	//sprintf count
 		//USB_TxWrite("into instance run!\r\n", 38);
 			if( TIM_GetFlagStatus(TIM3,TIM_FLAG_Update) != RESET )
@@ -518,7 +519,15 @@ int main(void)
 				{
 					TimeSlot_Number_R = 0;
 				}
-				
+				if((TimeSlot_Number_S < 1) && (instance_data[instance].instanceAddress16 == GATEWAY_ANCHOR_ADDR))
+				{
+					port_DisableEXT_IRQ(); //enable ScenSor IRQ before starting
+					dwt_forcetrxoff(); //disable DW1000
+					instance_clearevents(); //clear any events
+					//change state to send a Poll
+					instance_data[instance].CurrentState_Syc = TA_TXPOLL_WAIT_SEND ;
+					port_EnableEXT_IRQ(); //enable ScenSor IRQ before starting
+				}
 				
 			}
         instance_run();

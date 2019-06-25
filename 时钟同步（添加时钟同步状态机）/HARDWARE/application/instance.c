@@ -48,6 +48,9 @@
 
 uint16 TimeSlot_Number_S = 0;
 uint16 TimeSlot_Number_R = 0;
+uint8 TimeSlot_Number_S_FLAG = 1;
+uint8 TimeSlot_Number_R_FLAG = 1;
+uint8 Time_Count = 0;
 
 void instanceconfigframeheader16(instance_data_t *inst)
 {
@@ -998,12 +1001,33 @@ int testapprun(instance_data_t *inst, int message)
 // -------------------------------------------------------------------------------------------------------------------
 void instance_syc(instance_data_t *inst, int message)
 {
+	int n = 0;
+	u8 LogBuff[30];
 	switch (inst->CurrentState_Syc)
 	{
 		 case TA_INIT :
 			  switch (inst->mode)
 				{
 					case TAG:
+					{
+										memcpy(inst->eui64, &inst->instanceAddress16, ADDR_BYTE_SIZE_S);
+                    dwt_seteui(inst->eui64);
+                    dwt_setpanid(inst->panID);
+                    //set source address
+                    //inst->shortAdd_idx = (inst->instanceAddress16 & 0x3) ;
+                    dwt_setaddress16(inst->instanceAddress16);
+										dwt_enableframefilter(DWT_FF_NOTYPE_EN); //allow data, ack frames;
+										// First time anchor listens we don't do a delayed RX
+										dwt_setrxaftertxdelay(0);
+                    //change to next state - wait to receive a message
+                    inst->CurrentState_Syc = TA_RXE_WAIT ;
+                    dwt_setrxtimeout(0);
+                    dwt_setpreambledetecttimeout(0);
+                    instanceconfigframeheader16(inst);
+					}
+					break;
+					
+					case ANCHOR:
 					{
 										memcpy(inst->eui64, &inst->instanceAddress16, ADDR_BYTE_SIZE_S);
                     dwt_seteui(inst->eui64);
@@ -1022,15 +1046,21 @@ void instance_syc(instance_data_t *inst, int message)
 					}
 					break;
 					
-					case ANCHOR:
-					{
-						
-					}
-					break;
-					
 					case ANCHOR_MASTER:
 					{
+						inst->mode = ANCHOR;
+					
 						
+										dwt_enableframefilter(DWT_FF_DATA_EN | DWT_FF_ACK_EN); //allow data, ack frames;
+                    dwt_setpanid(inst->panID);
+                    memcpy(inst->eui64, &inst->instanceAddress16, ADDR_BYTE_SIZE_S);
+                    dwt_seteui(inst->eui64);
+                    //set source address
+                    dwt_setaddress16(inst->instanceAddress16);
+                    //Start off by Sleeping 1st -> set instToSleep to TRUE
+                    inst->CurrentState_Syc = TA_TXPOLL_WAIT_SEND;
+							
+										
 					}
 					break;
 					
@@ -1042,7 +1072,16 @@ void instance_syc(instance_data_t *inst, int message)
 				
 		case TA_SLEEP_DONE :
 		{
-			
+			event_data_t* dw_event = instance_getevent(10); //clear the event from the queue
+			// waiting for timout from application to wakup IC
+			if (dw_event->type != DWT_SIG_RX_TIMEOUT)
+			{
+          break;
+      }
+			inst->CurrentState_Syc = inst->NextState_Syc;
+      inst->NextState_Syc = 0; //clear
+			instancesetantennadelays(); //this will update the antenna delay if it has changed
+      instancesettxpower(); //configure TX power if it has changed
 		}
 		break;
 		
@@ -1054,13 +1093,47 @@ void instance_syc(instance_data_t *inst, int message)
 		 
 		 case TA_TXPOLL_WAIT_SEND :
 		 {
-			 
+			
+						
+						inst->msg_f.messageData[POLL_RNUM] = (inst->mode == TAG) ? inst->rangeNum : inst->rangeNumAnc; //copy new range number
+						inst->msg_f.messageData[FCODE] = (inst->mode == TAG) ? RTLS_DEMO_MSG_TAG_POLL : RTLS_DEMO_MSG_ANCH_POLL; //message function code (specifies if message is a poll, response or other...)
+						inst->msg_f.messageData[POLL_RNUM + 1 ] = ((uint8)TimeSlot_Number_S);
+						n = 0;
+						n = sprintf((char*)&LogBuff[0], "TimeSlot_Number_S = %d\r\n",TimeSlot_Number_S);
+						USB_TxWrite(LogBuff, n);
+            inst->psduLength = (TAG_POLL_MSG_LEN + FRAME_CRTL_AND_ADDRESS_S + FRAME_CRC);
+            inst->msg_f.seqNum = inst->frameSN++; //copy sequence number and then increment
+            inst->msg_f.sourceAddr[0] = inst->eui64[0]; //copy the address
+            inst->msg_f.sourceAddr[1] = inst->eui64[1]; //copy the address
+            inst->msg_f.destAddr[0] = 0xff;  //set the destination address (broadcast == 0xffff)
+            inst->msg_f.destAddr[1] = 0xff;  //set the destination address (broadcast == 0xffff)
+            dwt_writetxdata(inst->psduLength, (uint8 *)  &inst->msg_f, 0) ;	// write the frame data
+						//set the delayed rx on time (the response message will be sent after this delay (from A0))
+						//dwt_setrxaftertxdelay(0);  //units are 1.0256us - wait for wait4respTIM before RX on (delay RX)
+						inst->wait4ack = 0 ;
+						dwt_writetxfctrl(inst->psduLength, 0); //write frame control
+
+						dwt_starttx(DWT_START_TX_IMMEDIATE); //transmit the frame
+
+            inst->CurrentState_Syc = TA_TX_WAIT_CONF ;  // wait confirmation
+            inst->PreviousState_Syc = TA_TXPOLL_WAIT_SEND ;
+					
+
 		 }
 		 break;
 		 
 		 case TA_TX_WAIT_CONF:
 		 {
-			 
+			 event_data_t* dw_event = instance_getevent(11); //get and clear this event
+			 if(dw_event->type != DWT_SIG_TX_DONE) //wait for TX done confirmation
+			 {
+				  break;
+			 }
+			 if(inst->PreviousState_Syc == TA_TXPOLL_WAIT_SEND)
+			 {
+				  inst->CurrentState_Syc = TA_RXE_WAIT;                      // After sending, tag expects response/report, anchor waits to receive a final/new poll
+					message = 0;
+			 }
 		 }
 		 break;
 		 
@@ -1074,7 +1147,122 @@ void instance_syc(instance_data_t *inst, int message)
 		 
 		 case TA_RX_WAIT_DATA:
 		 {
+//		n = 0;
+//		n = sprintf((char*)&LogBuff[0], "T0 = %d\r\n",OS_TS_GET());
+//		USB_TxWrite(LogBuff, n);
 			 
+			 switch (message)
+			 {
+				 case DWT_SIG_RX_OKAY :
+				 {
+						event_data_t* dw_event = instance_getevent(15); //get and clear this event
+						uint8  srcAddr[8] = {0,0,0,0,0,0,0,0};
+						uint8  dstAddr[8] = {0,0,0,0,0,0,0,0};
+            int fcode = 0;
+						int fn_code = 0;
+						uint8 *messageData;
+						switch(dw_event->msgu.frame[1] & 0xCC)
+					{
+						case 0xCC: //
+							memcpy(&srcAddr[0], &(dw_event->msgu.rxmsg_ll.sourceAddr[0]), ADDR_BYTE_SIZE_L);
+							memcpy(&dstAddr[0], &(dw_event->msgu.rxmsg_ll.destAddr[0]), ADDR_BYTE_SIZE_L);
+							fn_code = dw_event->msgu.rxmsg_ll.messageData[FCODE];
+							messageData = &dw_event->msgu.rxmsg_ll.messageData[0];
+							//srclen = ADDR_BYTE_SIZE_L;
+							//fctrladdr_len = FRAME_CRTL_AND_ADDRESS_L;
+							break;
+						case 0xC8: //
+							memcpy(&srcAddr[0], &(dw_event->msgu.rxmsg_sl.sourceAddr[0]), ADDR_BYTE_SIZE_L);
+							memcpy(&dstAddr[0], &(dw_event->msgu.rxmsg_sl.destAddr[0]), ADDR_BYTE_SIZE_S);
+							fn_code = dw_event->msgu.rxmsg_sl.messageData[FCODE];
+							messageData = &dw_event->msgu.rxmsg_sl.messageData[0];
+							//srclen = ADDR_BYTE_SIZE_L;
+							//fctrladdr_len = FRAME_CRTL_AND_ADDRESS_LS;
+							break;
+						case 0x8C: //
+							memcpy(&srcAddr[0], &(dw_event->msgu.rxmsg_ls.sourceAddr[0]), ADDR_BYTE_SIZE_S);
+							memcpy(&dstAddr[0], &(dw_event->msgu.rxmsg_ls.destAddr[0]), ADDR_BYTE_SIZE_L);
+							fn_code = dw_event->msgu.rxmsg_ls.messageData[FCODE];
+							messageData = &dw_event->msgu.rxmsg_ls.messageData[0];
+							//srclen = ADDR_BYTE_SIZE_S;
+							//fctrladdr_len = FRAME_CRTL_AND_ADDRESS_LS;
+							break;
+						case 0x88: //
+							memcpy(&srcAddr[0], &(dw_event->msgu.rxmsg_ss.sourceAddr[0]), ADDR_BYTE_SIZE_S);
+							memcpy(&dstAddr[0], &(dw_event->msgu.rxmsg_ss.destAddr[0]), ADDR_BYTE_SIZE_S);
+							fn_code = dw_event->msgu.rxmsg_ss.messageData[FCODE];
+							messageData = &dw_event->msgu.rxmsg_ss.messageData[0];
+							//srclen = ADDR_BYTE_SIZE_S;
+							//fctrladdr_len = FRAME_CRTL_AND_ADDRESS_S;
+							break;
+					}
+					//process ranging messages
+						fcode = fn_code;
+					
+					 switch(fcode)
+					 {
+								case RTLS_DEMO_MSG_ANCH_POLL:
+                case RTLS_DEMO_MSG_TAG_POLL:
+                 {
+
+            				inst->tagPollRxTime = dw_event->timeStamp ; //save Poll's Rx time
+										if(fcode == RTLS_DEMO_MSG_TAG_POLL) //got poll from Tag
+											{
+													inst->rangeNumA[srcAddr[0]&0x7] = messageData[POLL_RNUM]; //when anchor receives a poll, we need to remember the new range number
+											}
+										else //got poll from Anchor (initiator)
+											{
+//												if(inst->mode == TAG)
+//												{
+//													inst->CurrentState_Syc = TA_SLEEP_DONE;
+//													inst->NextState_Syc = TA_TXPOLL_WAIT_SEND; //clear
+//												}
+													uint8 RMSG = messageData[2];
+													n = 0;
+													n = sprintf((char*)&LogBuff[0], "RMSG = %d\r\n",RMSG);
+													USB_TxWrite(LogBuff, n);
+													
+													//inst->rangeNumAAnc[tof_idx] = messageData[POLL_RNUM]; //when anchor receives poll from another anchor - save the range number
+											}
+
+								//the response has been sent - await TX done event
+                    if(dw_event->type_pend == DWT_SIG_TX_PENDING)
+                      {
+                          inst->CurrentState_Syc = TA_TX_WAIT_CONF;                // wait confirmation
+                          inst->PreviousState_Syc = TA_TXRESPONSE_SENT_POLLRX ;    //wait for TX confirmation of sent response
+                      }
+                                //already re-enabled the receiver
+                    else if (dw_event->type_pend == DWT_SIG_RX_PENDING)
+                      {
+                                	//stay in RX wait for next frame...
+                                	//RX is already enabled...
+                          inst->CurrentState_Syc = TA_RX_WAIT_DATA ;              // wait for next frame
+                      }
+                    else //the DW1000 is idle (re-enable from the application level)
+                      {
+                             //stay in RX wait for next frame...
+                          inst->CurrentState_Syc = TA_RXE_WAIT ;              // wait for next frame
+                      }
+
+
+                 }
+                 break; //RTLS_DEMO_MSG_TAG_POLL
+								 
+							  default:
+                        {
+                            //only enable receiver when not using double buffering
+                            inst->testAppState = TA_RXE_WAIT ;              // wait for next frame
+														dwt_setrxaftertxdelay(0);
+                        }
+                 break;
+					 }
+					
+				 }
+				 break;
+				 
+				 default:
+					 break;
+			 }
 		 }
 		 break;
 		 

@@ -92,7 +92,7 @@ extern "C" {
 #define NUM_EXPECTED_RESPONSES_ANC		(1) //anchors A0, A1 and A2 are involved in anchor to anchor ranging
 #define NUM_EXPECTED_RESPONSES_ANC0		(2) //anchor A0 expects response from A1 and A2
 
-#define GATEWAY_ANCHOR_ADDR				(0x8000)
+#define GATEWAY_ANCHOR_ADDR			(0x8000)
 #define A1_ANCHOR_ADDR					(0x8001)
 #define A2_ANCHOR_ADDR					(0x8002)
 #define A3_ANCHOR_ADDR					(0x8003)
@@ -100,6 +100,9 @@ extern "C" {
 //sync time
 extern uint16 TimeSlot_Number_S;
 extern uint16 TimeSlot_Number_R;
+extern uint8 TimeSlot_Number_S_FLAG;
+extern uint8 TimeSlot_Number_R_FLAG;
+extern uint8 Time_Count;
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // NOTE: the maximum RX timeout is ~ 65ms
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
